@@ -1,0 +1,7 @@
+{
+  "name": "flightdeck-shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Not a standalone package — Node's module-type marker for shared/, so pc-bridge (which imports shared/deckEvents.js, shared/widgetVarExtractor.js, etc. directly via a relative path, per README.md) resolves them as ES modules. flight-deck-pwa and widget-studio consume shared/ via synced copies (scripts/sync-shared.mjs) instead, so this file has no effect on them — browsers ignore package.json entirely."
+}

@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><title>Wave 0 Studio preview characterization</title>
+<h1>Studio preview state characterization</h1><pre id="result">Running…</pre><div id="preview"></div>
+<script type="module">
+import { StudioDeviceView } from '../../../widget-studio/js/StudioDeviceView.js';
+import { StudioState } from '../../../widget-studio/js/StudioState.js';
+import { StudioBridgeAdapter } from '../../../widget-studio/js/StudioBridgeAdapter.js';
+import { ComponentRegistry } from '../../../widget-studio/widgets/components/ComponentRegistry.js';
+import { DiagnosticsAccumulator } from '../../../shared/diagnostics/Accumulator.js';
+const result=document.querySelector('#result');
+try {
+  const hosts=[];
+  class FixtureButton {
+    constructor(definition,host){this.definition=definition;this.host=host;hosts.push(host);}
+    render(){this.element=document.createElement('button');this.element.textContent='Increment local state';this.element.onclick=()=>this.host.setLocalState('value',this.host.getLocalState('value')+1);return this.element;}
+    update(){}
+  }
+  ComponentRegistry.registerComponent('fixture.button',FixtureButton);
+  // Real rendering and subscription code; only viewport controls/sizing are omitted.
+  class FixtureView extends StudioDeviceView {
+    initDOM(){this.deviceFrameElement=document.createElement('div');this.deviceScreenElement=document.createElement('div');this.deviceFrameElement.append(this.deviceScreenElement);this.container.append(this.deviceFrameElement);}
+    attachEventListeners(){} autoFitDevice(){} applyDeviceScale(){} updatePreviewThemeButtonDevice(){} updateMoveWidgetButton(){}
+  }
+  const diagnostics=new DiagnosticsAccumulator({enabled:true});
+  const state=Object.assign(Object.create(StudioState.prototype),{
+    diagnostics,listeners:new Set(),liveStateValues:new Map(),simTelemetry:{},viewportMode:'device',activeDeviceId:'compact',deviceOrientation:'portrait',previewTheme:'dark',devicePlacement:{col:1,row:1},
+    widgetDef:{meta:{shortName:'fixture'},state:[{name:'value',default:0}],components:[{id:'button',type:'fixture.button',binding:{stateVar:'value'}}]}
+  });
+  const view=new FixtureView(document.querySelector('#preview'),state);
+  const initialButton=view.deviceScreenElement.querySelector('button');initialButton.click();
+  if(hosts[0].getLocalState('value')!==1)throw new Error('Fixture interaction failed');
+  const adapter=new StudioBridgeAdapter(state,{diagnostics});adapter.ingestTelemetry({a:1,b:2});
+  if(hosts.length!==3)throw new Error('Expected initial mount plus two field-triggered mounts');
+  if(initialButton.isConnected)throw new Error('Expected replaced DOM node');
+  if(hosts.at(-1).getLocalState('value')!==0)throw new Error('Expected current preview state reset defect');
+  result.textContent=JSON.stringify({status:'pass',evidence:'browser-characterization',existingDefect:'W1-08 preserved',mounts:hosts.length,localValueBefore:1,localValueAfter:hosts.at(-1).getLocalState('value'),oldNodeConnected:initialButton.isConnected,simulatorConnection:false},null,2);
+} catch(error){result.textContent=JSON.stringify({status:'fail',error:String(error),stack:error.stack});}
+</script>
