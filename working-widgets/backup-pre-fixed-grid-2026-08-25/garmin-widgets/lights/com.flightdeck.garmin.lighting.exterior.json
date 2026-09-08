@@ -1,0 +1,132 @@
+{
+  "fdws": "1.3",
+  "schemaVersion": "1.3.0",
+  "id": "com.flightdeck.garmin.lighting.exterior",
+  "revision": 2,
+  "kind": "widget",
+  "meta": {
+    "name": "Garmin Exterior Lighting Panel",
+    "shortName": "EXT LTS",
+    "author": "Flight Deck Avionics",
+    "description": "Annunciator-style exterior lighting panel — each switch carries its own LED tile so commanded state is visible even glancing across the panel, plus a master ALL EXT toggle, in the spirit of a G3X/G1000 lighting control page.",
+    "category": "Lighting",
+    "tags": ["lights", "exterior", "landing", "taxi", "nav", "strobe", "beacon", "garmin"]
+  },
+  "layout": {
+    "defaultW": 40,
+    "defaultH": 20,
+    "minW": 24,
+    "minH": 16,
+    "maxW": 40,
+    "maxH": 24,
+    "resizable": true,
+    "grid": { "columns": 20, "rows": 16 }
+  },
+  "layerGroups": [
+    { "id": "background", "z": 0, "locked": true },
+    { "id": "panels", "z": 10 },
+    { "id": "controls", "z": 50 }
+  ],
+  "state": [
+    { "name": "landing", "type": "boolean", "default": false, "syncFrom": "landingLightState" },
+    { "name": "taxi", "type": "boolean", "default": false, "syncFrom": "taxiLightState" },
+    { "name": "nav", "type": "boolean", "default": true, "syncFrom": "navLightState" },
+    { "name": "strobe", "type": "boolean", "default": false, "syncFrom": "strobeLightState" },
+    { "name": "beacon", "type": "boolean", "default": true, "syncFrom": "beaconLightState" },
+    { "name": "logo", "type": "boolean", "default": false, "syncFrom": "logoLightState" },
+    { "name": "wing", "type": "boolean", "default": false, "syncFrom": "wingLightState" }
+  ],
+  "components": [
+    {
+      "id": "bg_bezel",
+      "type": "core.label",
+      "layout": { "col": 1, "row": 1, "w": 20, "h": 16 },
+      "layer": { "group": "background", "z": 0, "pointerEvents": "none" },
+      "props": { "text": "" },
+      "style": { "background": { "type": "color", "color": "#0c1017" }, "border": { "width": 1, "color": "#1e293b", "radius": 10 } }
+    },
+    {
+      "id": "lbl_title",
+      "type": "core.label",
+      "layout": { "col": 2, "row": 1, "w": 18, "h": 1 },
+      "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "EXTERIOR LIGHTING", "align": "center" },
+      "style": { "typography": { "font": "Chakra Petch", "size": 12, "weight": 800, "color": "#cbd5e1" } }
+    },
+
+    { "id": "btn_landing", "type": "core.button", "layout": { "col": 2, "row": 3, "w": 8, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "landingLightState", "stateVar": "landing" },
+      "props": { "variant": "toggle", "label": "LANDING", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "landing" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "landingLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_taxi", "type": "core.button", "layout": { "col": 11, "row": 3, "w": 8, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "taxiLightState", "stateVar": "taxi" },
+      "props": { "variant": "toggle", "label": "TAXI", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "taxi" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "taxiLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_nav", "type": "core.button", "layout": { "col": 2, "row": 7, "w": 8, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "navLightState", "stateVar": "nav" },
+      "props": { "variant": "toggle", "label": "NAV / POS", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "nav" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "navLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_strobe", "type": "core.button", "layout": { "col": 11, "row": 7, "w": 8, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "strobeLightState", "stateVar": "strobe" },
+      "props": { "variant": "toggle", "label": "STROBE", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "strobe" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "strobeLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_beacon", "type": "core.button", "layout": { "col": 2, "row": 11, "w": 5, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "beaconLightState", "stateVar": "beacon" },
+      "props": { "variant": "toggle", "label": "BEACON", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "beacon" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "beaconLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_logo", "type": "core.button", "layout": { "col": 8, "row": 11, "w": 5, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "logoLightState", "stateVar": "logo" },
+      "props": { "variant": "toggle", "label": "LOGO", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "logo" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "logoLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_wing", "type": "core.button", "layout": { "col": 14, "row": 11, "w": 5, "h": 3 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "wingLightState", "stateVar": "wing" },
+      "props": { "variant": "toggle", "label": "WING/ICE", "hasLed": true },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 8 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [
+        { "trigger": "tap", "action": { "type": "core.toggleLocalState", "field": "wing" } },
+        { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "wingLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } }
+      ] },
+
+    { "id": "btn_all_ext", "type": "core.button", "layout": { "col": 2, "row": 14, "w": 17, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "momentary", "label": "ALL EXT" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#22d3ee", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 13, "weight": 800, "color": "#22d3ee" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "allLightsToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "medium" } } ] }
+  ],
+  "capabilities": {
+    "readSimVars": ["landingLightState", "taxiLightState", "navLightState", "strobeLightState", "beaconLightState", "logoLightState", "wingLightState"],
+    "writeEvents": [
+      "landingLightsToggle", "taxiLightsToggle", "navLightsToggle", "strobeLightsToggle",
+      "beaconLightsToggle", "logoLightsToggle", "wingLightsToggle", "allLightsToggle"
+    ]
+  }
+}

@@ -1,0 +1,1373 @@
+{
+  "fdws": "1.7",
+  "schemaVersion": "1.7.0",
+  "id": "com.flightdeck.garmin.attitudeindicator",
+  "revision": 13,
+  "kind": "widget",
+  "meta": {
+    "name": "Garmin Attitude Indicator (FD)",
+    "shortName": "ADI/FD",
+    "author": "Flight Deck Avionics",
+    "description": "G1000-style PFD attitude indicator with a full AFCS mode annunciator bar (AP/FD/YD, active + armed lateral and vertical modes, G1000-style non-overlapping layout) and an integrated Flight Director command cue. The sky/ground horizon rotates for bank and translates for pitch as a single rigid body (FDWS v1.5 core.gauge.props.compose), staying locked in sync with the separate bank pointer against the fixed scale. Pitch ladder is 2x scale (5-degree lines) for legibility at small sizes. Slip/skid ball included. Min/default size 14x14.",
+    "category": "Avionics",
+    "tags": [
+      "attitude",
+      "adi",
+      "pfd",
+      "flight director",
+      "fd",
+      "horizon",
+      "garmin",
+      "g1000",
+      "avionics"
+    ]
+  },
+  "layout": {
+    "defaultW": 14,
+    "defaultH": 14,
+    "minW": 14,
+    "minH": 14,
+    "maxW": 30,
+    "maxH": 30,
+    "resizable": true,
+    "grid": {
+      "columns": 28,
+      "rows": 28
+    }
+  },
+  "layerGroups": [
+    {
+      "id": "background",
+      "z": 0,
+      "locked": true
+    },
+    {
+      "id": "horizon",
+      "z": 10
+    },
+    {
+      "id": "bezel",
+      "z": 20
+    },
+    {
+      "id": "pointers",
+      "z": 30
+    },
+    {
+      "id": "reference",
+      "z": 50
+    },
+    {
+      "id": "annunciator",
+      "z": 70
+    }
+  ],
+  "state": [
+    {
+      "name": "attPitchDeg",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "attPitchDeg",
+      "pollFrequencyHz": 100
+    },
+    {
+      "name": "attBankDeg",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "attBankDeg",
+      "pollFrequencyHz": 100
+    },
+    {
+      "name": "attSlipSkid",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "attSlipSkid"
+    },
+    {
+      "name": "apFdState",
+      "type": "boolean",
+      "default": false,
+      "syncFrom": "apFdState"
+    },
+    {
+      "name": "attFdPitchCmd",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "attFdPitchCmd",
+      "pollFrequencyHz": 100
+    },
+    {
+      "name": "attFdBankCmd",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "attFdBankCmd",
+      "pollFrequencyHz": 100
+    },
+    {
+      "name": "apMasterState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apMasterState"
+    },
+    {
+      "name": "apYdState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apYdState"
+    },
+    {
+      "name": "apHdgModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apHdgModeState"
+    },
+    {
+      "name": "apNavModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apNavModeState"
+    },
+    {
+      "name": "apAprModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apAprModeState"
+    },
+    {
+      "name": "apBcModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apBcModeState"
+    },
+    {
+      "name": "apAltModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apAltModeState"
+    },
+    {
+      "name": "apVsModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apVsModeState"
+    },
+    {
+      "name": "apFlcModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apFlcModeState"
+    },
+    {
+      "name": "apVnavModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apVnavModeState"
+    },
+    {
+      "name": "apAltArmedState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apAltArmedState"
+    },
+    {
+      "name": "apGsModeState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apGsModeState"
+    },
+    {
+      "name": "apGsArmedState",
+      "type": "number",
+      "default": 0,
+      "syncFrom": "apGsArmedState"
+    }
+  ],
+  "components": [
+    {
+      "id": "bg_bezel",
+      "type": "core.label",
+      "layout": {
+        "col": 1,
+        "row": 1,
+        "w": 28,
+        "h": 28
+      },
+      "layer": {
+        "group": "background",
+        "z": 0,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "text": ""
+      },
+      "style": {
+        "background": {
+          "type": "color",
+          "color": "#05070c"
+        },
+        "border": {
+          "width": 2,
+          "color": "#1e293b",
+          "radius": 16
+        }
+      }
+    },
+    {
+      "id": "attitude_sphere",
+      "type": "core.gauge",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "horizon",
+        "z": 10,
+        "clipToBounds": true
+      },
+      "binding": {
+        "readSimVar": "attBankDeg",
+        "deadband": 0.1,
+        "transition": {
+          "durationMs": 100,
+          "easing": "linear"
+        },
+        "pollFrequencyHz": 100
+      },
+      "props": {
+        "transform": "rotate",
+        "valueRange": [
+          -60,
+          60
+        ],
+        "outputRange": [
+          -60,
+          60
+        ],
+        "clamp": true,
+        "pivot": {
+          "x": "50%",
+          "y": "50%"
+        },
+        "compose": {
+          "transform": "translate",
+          "axis": "y",
+          "stateVar": "attPitchDeg",
+          "valueRange": [
+            -15,
+            15
+          ],
+          "outputRange": [
+            45,
+            -45
+          ],
+          "clamp": true
+        }
+      },
+      "assets": {
+        "image": "attitude_sphere"
+      },
+      "style": {
+        "border": {
+          "width": 0,
+          "color": "transparent",
+          "radius": 999
+        }
+      }
+    },
+    {
+      "id": "fd_pitch_bar",
+      "type": "core.gauge",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "horizon",
+        "z": 22,
+        "clipToBounds": true
+      },
+      "visibleWhen": {
+        "state": "apFdState",
+        "equals": 1
+      },
+      "binding": {
+        "readSimVar": "attFdBankCmd",
+        "deadband": 0.1,
+        "transition": {
+          "durationMs": 100,
+          "easing": "linear"
+        },
+        "pollFrequencyHz": 100
+      },
+      "props": {
+        "transform": "rotate",
+        "valueRange": [
+          -60,
+          60
+        ],
+        "outputRange": [
+          60,
+          -60
+        ],
+        "clamp": true,
+        "pivot": {
+          "x": "50%",
+          "y": "50%"
+        },
+        "compose": {
+          "transform": "translate",
+          "axis": "y",
+          "stateVar": "attFdPitchCmd",
+          "relativeToStateVar": "attPitchDeg",
+          "valueRange": [
+            -15,
+            15
+          ],
+          "outputRange": [
+            -45,
+            45
+          ],
+          "clamp": true
+        }
+      },
+      "assets": {
+        "image": "fd_pitch_bar"
+      },
+      "style": {
+        "border": {
+          "width": 0,
+          "color": "transparent",
+          "radius": 999
+        }
+      }
+    },
+    {
+      "id": "bank_scale_ring",
+      "type": "core.image",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "bezel",
+        "z": 25,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "assetId": "bank_scale_ring",
+        "fit": "contain"
+      }
+    },
+    {
+      "id": "bank_pointer",
+      "type": "core.gauge",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "pointers",
+        "z": 30
+      },
+      "binding": {
+        "readSimVar": "attBankDeg",
+        "deadband": 0.1,
+        "transition": {
+          "durationMs": 100,
+          "easing": "linear"
+        },
+        "pollFrequencyHz": 100
+      },
+      "props": {
+        "transform": "rotate",
+        "valueRange": [
+          -60,
+          60
+        ],
+        "outputRange": [
+          -60,
+          60
+        ],
+        "clamp": true,
+        "pivot": {
+          "x": "50%",
+          "y": "50%"
+        }
+      },
+      "assets": {
+        "image": "bank_pointer"
+      }
+    },
+    {
+      "id": "fd_bank_pointer",
+      "type": "core.gauge",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "pointers",
+        "z": 31
+      },
+      "visibleWhen": {
+        "state": "apFdState",
+        "equals": 1
+      },
+      "binding": {
+        "readSimVar": "attFdBankCmd",
+        "deadband": 0.1,
+        "transition": {
+          "durationMs": 100,
+          "easing": "linear"
+        },
+        "pollFrequencyHz": 100
+      },
+      "props": {
+        "transform": "rotate",
+        "valueRange": [
+          -60,
+          60
+        ],
+        "outputRange": [
+          -60,
+          60
+        ],
+        "clamp": true,
+        "pivot": {
+          "x": "50%",
+          "y": "50%"
+        }
+      },
+      "assets": {
+        "image": "fd_bank_pointer"
+      }
+    },
+    {
+      "id": "slip_goalposts",
+      "type": "core.image",
+      "layout": {
+        "col": 10,
+        "row": 9,
+        "w": 8,
+        "h": 2
+      },
+      "layer": {
+        "group": "bezel",
+        "z": 26,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "assetId": "slip_goalposts",
+        "fit": "contain"
+      }
+    },
+    {
+      "id": "slip_ball",
+      "type": "core.gauge",
+      "layout": {
+        "col": 10,
+        "row": 9,
+        "w": 8,
+        "h": 2
+      },
+      "layer": {
+        "group": "pointers",
+        "z": 32,
+        "clipToBounds": true
+      },
+      "binding": {
+        "readSimVar": "attSlipSkid",
+        "deadband": 0.1,
+        "transition": {
+          "durationMs": 300,
+          "easing": "linear"
+        }
+      },
+      "props": {
+        "transform": "translate",
+        "axis": "x",
+        "valueRange": [
+          -20,
+          20
+        ],
+        "outputRange": [
+          -32,
+          32
+        ],
+        "clamp": true
+      },
+      "assets": {
+        "image": "slip_ball"
+      }
+    },
+    {
+      "id": "aircraft_symbol",
+      "type": "core.image",
+      "layout": {
+        "col": 4,
+        "row": 6,
+        "w": 20,
+        "h": 20
+      },
+      "layer": {
+        "group": "reference",
+        "z": 50,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "assetId": "aircraft_symbol",
+        "fit": "contain"
+      }
+    },
+    {
+      "id": "div_bar_bottom",
+      "type": "core.label",
+      "layout": {
+        "col": 1,
+        "row": 5,
+        "w": 28,
+        "h": 1
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 65,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "text": ""
+      },
+      "style": {
+        "background": {
+          "type": "color",
+          "color": "#1e293b"
+        }
+      }
+    },
+    {
+      "id": "div_lat_vert",
+      "type": "core.label",
+      "layout": {
+        "col": 8,
+        "row": 1,
+        "w": 1,
+        "h": 5
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 65,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "text": ""
+      },
+      "style": {
+        "background": {
+          "type": "color",
+          "color": "#1e293b"
+        }
+      }
+    },
+    {
+      "id": "div_vert_col",
+      "type": "core.label",
+      "layout": {
+        "col": 18,
+        "row": 1,
+        "w": 1,
+        "h": 5
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 65,
+        "pointerEvents": "none"
+      },
+      "props": {
+        "text": ""
+      },
+      "style": {
+        "background": {
+          "type": "color",
+          "color": "#1e293b"
+        }
+      }
+    },
+    {
+      "id": "afcs_ap",
+      "type": "core.label",
+      "layout": {
+        "col": 1,
+        "row": 1,
+        "w": 7,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apMasterState",
+        "equals": 1
+      },
+      "props": {
+        "text": "AP",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 12,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "afcs_fd_only",
+      "type": "core.label",
+      "layout": {
+        "col": 1,
+        "row": 1,
+        "w": 7,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apFdState",
+            "equals": 1
+          },
+          {
+            "state": "apMasterState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "FD",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 12,
+          "weight": 800,
+          "color": "#f8fafc"
+        }
+      }
+    },
+    {
+      "id": "afcs_yd",
+      "type": "core.label",
+      "layout": {
+        "col": 1,
+        "row": 3,
+        "w": 7,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apYdState",
+        "equals": 1
+      },
+      "props": {
+        "text": "YD",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 9,
+          "weight": 800,
+          "color": "#94a3b8"
+        }
+      }
+    },
+    {
+      "id": "lat_hdg",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 1,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apHdgModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "HDG",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "lat_nav",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 1,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apNavModeState",
+            "equals": 1
+          },
+          {
+            "state": "apHdgModeState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "NAV",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "lat_apr",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 1,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apAprModeState",
+            "equals": 1
+          },
+          {
+            "state": "apHdgModeState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "APR",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "lat_bc",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 1,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apBcModeState",
+            "equals": 1
+          },
+          {
+            "state": "apHdgModeState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "BC",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "lat_rol",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 1,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apFdState",
+            "equals": 1
+          },
+          {
+            "state": "apHdgModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apNavModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apAprModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apBcModeState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "ROL",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "lat_nav_armed",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 3,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apHdgModeState",
+            "equals": 1
+          },
+          {
+            "state": "apNavModeState",
+            "equals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "NAV",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 8,
+          "weight": 700,
+          "color": "#22d3ee"
+        }
+      }
+    },
+    {
+      "id": "lat_bc_armed",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 3,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apHdgModeState",
+            "equals": 1
+          },
+          {
+            "state": "apNavModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apBcModeState",
+            "equals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "BC",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 8,
+          "weight": 700,
+          "color": "#22d3ee"
+        }
+      }
+    },
+    {
+      "id": "lat_apr_armed",
+      "type": "core.label",
+      "layout": {
+        "col": 9,
+        "row": 3,
+        "w": 9,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apHdgModeState",
+            "equals": 1
+          },
+          {
+            "state": "apNavModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apBcModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apAprModeState",
+            "equals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "APR",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 8,
+          "weight": 700,
+          "color": "#22d3ee"
+        }
+      }
+    },
+    {
+      "id": "vert_alt",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apAltModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "ALT",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_vs",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apVsModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "VS",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_flc",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apFlcModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "FLC",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_vnav",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apVnavModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "VNAV",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_gs",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apGsModeState",
+        "equals": 1
+      },
+      "props": {
+        "text": "GS",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_pit",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 1,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "allOf": [
+          {
+            "state": "apFdState",
+            "equals": 1
+          },
+          {
+            "state": "apAltModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apVsModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apFlcModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apVnavModeState",
+            "notEquals": 1
+          },
+          {
+            "state": "apGsModeState",
+            "notEquals": 1
+          }
+        ]
+      },
+      "props": {
+        "text": "PIT",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 10,
+          "weight": 800,
+          "color": "#22c55e"
+        }
+      }
+    },
+    {
+      "id": "vert_alts_armed",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 3,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apAltArmedState",
+        "equals": 1
+      },
+      "props": {
+        "text": "ALTS",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 8,
+          "weight": 700,
+          "color": "#22d3ee"
+        }
+      }
+    },
+    {
+      "id": "vert_gs_armed",
+      "type": "core.label",
+      "layout": {
+        "col": 19,
+        "row": 3,
+        "w": 10,
+        "h": 2
+      },
+      "layer": {
+        "group": "annunciator",
+        "z": 70,
+        "pointerEvents": "none"
+      },
+      "visibleWhen": {
+        "state": "apGsArmedState",
+        "equals": 1
+      },
+      "props": {
+        "text": "GS",
+        "align": "center"
+      },
+      "style": {
+        "typography": {
+          "font": "Chakra Petch",
+          "size": 8,
+          "weight": 700,
+          "color": "#22d3ee"
+        }
+      }
+    }
+  ],
+  "capabilities": {
+    "readSimVars": [
+      "attPitchDeg",
+      "attBankDeg",
+      "attSlipSkid",
+      "apFdState",
+      "attFdPitchCmd",
+      "attFdBankCmd",
+      "apMasterState",
+      "apYdState",
+      "apHdgModeState",
+      "apNavModeState",
+      "apAprModeState",
+      "apBcModeState",
+      "apAltModeState",
+      "apVsModeState",
+      "apFlcModeState",
+      "apVnavModeState",
+      "apAltArmedState",
+      "apGsModeState",
+      "apGsArmedState"
+    ],
+    "writeEvents": []
+  },
+  "assets": [
+    {
+      "id": "attitude_sphere",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0ic2t5IiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwYTVmYzciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNGZhNmU4Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJncm91bmQiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzhhNWEyZSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM0YTMwMTYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI3NreSkiLz4KICA8cmVjdCB4PSIwIiB5PSIxMDAiIHdpZHRoPSIyMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2dyb3VuZCkiLz4KICAKICAgIDxsaW5lIHgxPSI4NiIgeTE9IjExNSIgeDI9Ijk2IiB5Mj0iMTE1IiBzdHJva2U9IiNlNWU3ZWIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGxpbmUgeDE9IjEwNCIgeTE9IjExNSIgeDI9IjExNCIgeTI9IjExNSIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDx0ZXh0IHg9IjcyIiB5PSIxMTkiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNWU3ZWIiIHRleHQtYW5jaG9yPSJlbmQiPjU8L3RleHQ+CiAgICA8dGV4dCB4PSIxMjgiIHk9IjExOSIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U1ZTdlYiIgdGV4dC1hbmNob3I9InN0YXJ0Ij41PC90ZXh0PgogICAgPGxpbmUgeDE9IjgwIiB5MT0iMTMwIiB4Mj0iOTAiIHkyPSIxMzAiIHN0cm9rZT0iI2U1ZTdlYiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8bGluZSB4MT0iMTEwIiB5MT0iMTMwIiB4Mj0iMTIwIiB5Mj0iMTMwIiBzdHJva2U9IiNlNWU3ZWIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHRleHQgeD0iNjYiIHk9IjEzNCIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U1ZTdlYiIgdGV4dC1hbmNob3I9ImVuZCI+MTA8L3RleHQ+CiAgICA8dGV4dCB4PSIxMzQiIHk9IjEzNCIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U1ZTdlYiIgdGV4dC1hbmNob3I9InN0YXJ0Ij4xMDwvdGV4dD4KICAgIDxsaW5lIHgxPSI3NCIgeTE9IjE0NSIgeDI9Ijg0IiB5Mj0iMTQ1IiBzdHJva2U9IiNlNWU3ZWIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGxpbmUgeDE9IjExNiIgeTE9IjE0NSIgeDI9IjEyNiIgeTI9IjE0NSIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDx0ZXh0IHg9IjYwIiB5PSIxNDkiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNWU3ZWIiIHRleHQtYW5jaG9yPSJlbmQiPjE1PC90ZXh0PgogICAgPHRleHQgeD0iMTQwIiB5PSIxNDkiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNWU3ZWIiIHRleHQtYW5jaG9yPSJzdGFydCI+MTU8L3RleHQ+CiAgCiAgICA8bGluZSB4MT0iODYiIHkxPSI4NSIgeDI9Ijk2IiB5Mj0iODUiIHN0cm9rZT0iI2U1ZTdlYiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8bGluZSB4MT0iMTA0IiB5MT0iODUiIHgyPSIxMTQiIHkyPSI4NSIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDx0ZXh0IHg9IjcyIiB5PSI4OSIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U1ZTdlYiIgdGV4dC1hbmNob3I9ImVuZCI+NTwvdGV4dD4KICAgIDx0ZXh0IHg9IjEyOCIgeT0iODkiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNWU3ZWIiIHRleHQtYW5jaG9yPSJzdGFydCI+NTwvdGV4dD4KICAgIDxsaW5lIHgxPSI4MCIgeTE9IjcwIiB4Mj0iOTAiIHkyPSI3MCIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxsaW5lIHgxPSIxMTAiIHkxPSI3MCIgeDI9IjEyMCIgeTI9IjcwIiBzdHJva2U9IiNlNWU3ZWIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHRleHQgeD0iNjYiIHk9Ijc0IiBmb250LWZhbWlseT0iQ2hha3JhIFBldGNoLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjZTVlN2ViIiB0ZXh0LWFuY2hvcj0iZW5kIj4xMDwvdGV4dD4KICAgIDx0ZXh0IHg9IjEzNCIgeT0iNzQiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNlNWU3ZWIiIHRleHQtYW5jaG9yPSJzdGFydCI+MTA8L3RleHQ+CiAgICA8bGluZSB4MT0iNzQiIHkxPSI1NSIgeDI9Ijg0IiB5Mj0iNTUiIHN0cm9rZT0iI2U1ZTdlYiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8bGluZSB4MT0iMTE2IiB5MT0iNTUiIHgyPSIxMjYiIHkyPSI1NSIgc3Ryb2tlPSIjZTVlN2ViIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDx0ZXh0IHg9IjYwIiB5PSI1OSIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0iI2U1ZTdlYiIgdGV4dC1hbmNob3I9ImVuZCI+MTU8L3RleHQ+CiAgICA8dGV4dCB4PSIxNDAiIHk9IjU5IiBmb250LWZhbWlseT0iQ2hha3JhIFBldGNoLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjZTVlN2ViIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjE1PC90ZXh0PgogIDxsaW5lIHgxPSIwIiB5MT0iMTAwIiB4Mj0iMjAwIiB5Mj0iMTAwIiBzdHJva2U9IiNmOGZhZmMiIHN0cm9rZS13aWR0aD0iMyIvPgo8L3N2Zz4=",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "bank_pointer",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cG9seWdvbiBwb2ludHM9IjEwMCwxNCA5MiwzMCAxMDgsMzAiIGZpbGw9IiNmOGZhZmMiLz4KPC9zdmc+",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "fd_bank_pointer",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cG9seWdvbiBwb2ludHM9IjEwMCw2IDkwLDI0IDk0LDI0IDEwMCwxMyAxMDYsMjQgMTEwLDI0IiBmaWxsPSIjZTM0MWQwIi8+Cjwvc3ZnPg==",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "fd_pitch_bar",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSIzNCIgeT0iOTUiIHdpZHRoPSI0NSIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iI2UzNDFkMCIvPgogIDxyZWN0IHg9IjEyMSIgeT0iOTUiIHdpZHRoPSI0NSIgaGVpZ2h0PSI3IiByeD0iMyIgZmlsbD0iI2UzNDFkMCIvPgogIDxwb2x5Z29uIHBvaW50cz0iNzksOTAgMTAwLDk4IDc5LDEwNiIgZmlsbD0iI2UzNDFkMCIvPgogIDxwb2x5Z29uIHBvaW50cz0iMTIxLDkwIDEwMCw5OCAxMjEsMTA2IiBmaWxsPSIjZTM0MWQwIi8+Cjwvc3ZnPg==",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "bank_scale_ring",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9Ijk3IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzQxNWMiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIxNi44NiIgeTE9IjUyLjAwIiB4Mj0iMjguOTkiIHkyPSI1OS4wMCIgc3Ryb2tlPSIjY2JkNWUxIiBzdHJva2Utd2lkdGg9IjIuNSIvPjx0ZXh0IHg9IjM3LjY1IiB5PSI2OC4wMCIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2NiZDVlMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+NjA8L3RleHQ+PGxpbmUgeDE9IjMyLjEyIiB5MT0iMzIuMTIiIHgyPSI0Mi4wMiIgeTI9IjQyLjAyIiBzdHJva2U9IiNjYmQ1ZTEiIHN0cm9rZS13aWR0aD0iMi41Ii8+PHRleHQgeD0iNDkuMDkiIHk9IjUzLjA5IiBmb250LWZhbWlseT0iQ2hha3JhIFBldGNoLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjY2JkNWUxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj40NTwvdGV4dD48bGluZSB4MT0iNTIuMDAiIHkxPSIxNi44NiIgeDI9IjU5LjAwIiB5Mj0iMjguOTkiIHN0cm9rZT0iI2NiZDVlMSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz48dGV4dCB4PSI2NC4wMCIgeT0iNDEuNjUiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjYmQ1ZTEiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwPC90ZXh0PjxsaW5lIHgxPSI2Ny4xNyIgeTE9IjkuNzkiIHgyPSI3MC4yNCIgeTI9IjE4LjI1IiBzdHJva2U9IiNjYmQ1ZTEiIHN0cm9rZS13aWR0aD0iMS41Ii8+PGxpbmUgeDE9IjgzLjMzIiB5MT0iNS40NiIgeDI9Ijg0Ljg5IiB5Mj0iMTQuMzIiIHN0cm9rZT0iI2NiZDVlMSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48bGluZSB4MT0iMTAwLjAwIiB5MT0iNC4wMCIgeDI9IjEwMC4wMCIgeTI9IjE4LjAwIiBzdHJva2U9IiNjYmQ1ZTEiIHN0cm9rZS13aWR0aD0iMi41Ii8+PGxpbmUgeDE9IjExNi42NyIgeTE9IjUuNDYiIHgyPSIxMTUuMTEiIHkyPSIxNC4zMiIgc3Ryb2tlPSIjY2JkNWUxIiBzdHJva2Utd2lkdGg9IjEuNSIvPjxsaW5lIHgxPSIxMzIuODMiIHkxPSI5Ljc5IiB4Mj0iMTI5Ljc2IiB5Mj0iMTguMjUiIHN0cm9rZT0iI2NiZDVlMSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48bGluZSB4MT0iMTQ4LjAwIiB5MT0iMTYuODYiIHgyPSIxNDEuMDAiIHkyPSIyOC45OSIgc3Ryb2tlPSIjY2JkNWUxIiBzdHJva2Utd2lkdGg9IjIuNSIvPjx0ZXh0IHg9IjEzNi4wMCIgeT0iNDEuNjUiIGZvbnQtZmFtaWx5PSJDaGFrcmEgUGV0Y2gsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjYmQ1ZTEiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwPC90ZXh0PjxsaW5lIHgxPSIxNjcuODgiIHkxPSIzMi4xMiIgeDI9IjE1Ny45OCIgeTI9IjQyLjAyIiBzdHJva2U9IiNjYmQ1ZTEiIHN0cm9rZS13aWR0aD0iMi41Ii8+PHRleHQgeD0iMTUwLjkxIiB5PSI1My4wOSIgZm9udC1mYW1pbHk9IkNoYWtyYSBQZXRjaCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2NiZDVlMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+NDU8L3RleHQ+PGxpbmUgeDE9IjE4My4xNCIgeTE9IjUyLjAwIiB4Mj0iMTcxLjAxIiB5Mj0iNTkuMDAiIHN0cm9rZT0iI2NiZDVlMSIgc3Ryb2tlLXdpZHRoPSIyLjUiLz48dGV4dCB4PSIxNjIuMzUiIHk9IjY4LjAwIiBmb250LWZhbWlseT0iQ2hha3JhIFBldGNoLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjY2JkNWUxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj42MDwvdGV4dD4KICA8cG9seWdvbiBwb2ludHM9IjEwMCw0IDkzLDE4IDEwNywxOCIgZmlsbD0iIzY0NzQ4YiIvPgo8L3N2Zz4=",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "slip_ball",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjIwIiByPSI5IiBmaWxsPSJub25lIiBzdHJva2U9IiNmOGZhZmMiIHN0cm9rZS13aWR0aD0iMi41Ii8+Cjwvc3ZnPg==",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "slip_goalposts",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxsaW5lIHgxPSI3OCIgeTE9IjYiIHgyPSI3OCIgeTI9IjM0IiBzdHJva2U9IiM5NGEzYjgiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgPGxpbmUgeDE9IjEyMiIgeTE9IjYiIHgyPSIxMjIiIHkyPSIzNCIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "id": "aircraft_symbol",
+      "data": "PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSI2MCIgeT0iOTciIHdpZHRoPSI0MCIgaGVpZ2h0PSI2IiBmaWxsPSIjMGEwZTE0Ii8+CiAgPHJlY3QgeD0iMTAwIiB5PSI5NyIgd2lkdGg9IjQwIiBoZWlnaHQ9IjYiIGZpbGw9IiMwYTBlMTQiLz4KICA8cmVjdCB4PSI2MiIgeT0iOTgiIHdpZHRoPSIzNiIgaGVpZ2h0PSI0IiBmaWxsPSIjZjZjOTBlIi8+CiAgPHJlY3QgeD0iMTAyIiB5PSI5OCIgd2lkdGg9IjM2IiBoZWlnaHQ9IjQiIGZpbGw9IiNmNmM5MGUiLz4KICA8cG9seWdvbiBwb2ludHM9IjEwMCw5MCAxMDgsMTAwIDEwMCwxMTAgOTIsMTAwIiBmaWxsPSIjMGEwZTE0Ii8+CiAgPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI0LjUiIGZpbGw9IiNmNmM5MGUiLz4KPC9zdmc+",
+      "mimeType": "image/svg+xml"
+    }
+  ],
+  "updatedAt": 1787597737323
+}

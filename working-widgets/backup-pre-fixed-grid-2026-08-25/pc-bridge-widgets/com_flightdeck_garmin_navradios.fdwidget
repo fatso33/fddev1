@@ -1,0 +1,166 @@
+{
+  "fdws": "1.3",
+  "schemaVersion": "1.3.0",
+  "id": "com.flightdeck.garmin.navradios",
+  "revision": 3,
+  "kind": "widget",
+  "meta": {
+    "name": "Garmin NAV Radios",
+    "shortName": "NAV1/2",
+    "author": "Flight Deck Avionics",
+    "description": "GTN-style dual NAV1/NAV2 active/standby frequency panel with swap controls and 4 long-press-configurable quick-tune presets. Long-press a preset to open a GTN-style popup editor (FDWS v1.3 Widget Popover) for its label and frequency.",
+    "category": "Avionics",
+    "tags": [
+      "radio",
+      "nav",
+      "nav1",
+      "nav2",
+      "avionics",
+      "presets",
+      "frequency",
+      "garmin",
+      "gtn"
+    ]
+  },
+  "layout": {
+    "defaultW": 20,
+    "defaultH": 12,
+    "minW": 12,
+    "minH": 8,
+    "maxW": 44,
+    "maxH": 44,
+    "resizable": true,
+    "grid": {
+      "columns": 24,
+      "rows": 15
+    }
+  },
+  "layerGroups": [
+    {
+      "id": "background",
+      "z": 0,
+      "locked": true
+    },
+    {
+      "id": "panels",
+      "z": 10
+    },
+    {
+      "id": "controls",
+      "z": 50
+    }
+  ],
+  "state": [
+    {
+      "name": "nav1ActFreq",
+      "type": "string",
+      "default": "110.30",
+      "syncFrom": "nav1_act"
+    },
+    {
+      "name": "nav1StbyFreq",
+      "type": "string",
+      "default": "113.70",
+      "syncFrom": "nav1_stby"
+    },
+    {
+      "name": "nav2ActFreq",
+      "type": "string",
+      "default": "108.00",
+      "syncFrom": "nav2_act"
+    },
+    {
+      "name": "nav2StbyFreq",
+      "type": "string",
+      "default": "117.20",
+      "syncFrom": "nav2_stby"
+    },
+    {
+      "name": "presets",
+      "type": "array",
+      "default": [
+        {
+          "freq": "---",
+          "label": ""
+        },
+        {
+          "freq": "---",
+          "label": ""
+        },
+        {
+          "freq": "---",
+          "label": ""
+        },
+        {
+          "freq": "---",
+          "label": ""
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "btn_preset_1",
+      "type": "core.button",
+      "layout": {
+        "col": 2,
+        "row": 13,
+        "w": 5,
+        "h": 2
+      },
+      "interactions": [
+        {
+          "trigger": "tap",
+          "action": {
+            "type": "core.applyPresetToField",
+            "field": "nav1StbyFreq",
+            "presetSlot": 0,
+            "event": "NAV1_SET",
+            "openEditorIfEmpty": false
+          }
+        },
+        {
+          "trigger": "longpress",
+          "action": {
+            "type": "core.openWidgetPopover",
+            "popoverWidgetId": "com.flightdeck.garmin.navpreseteditor",
+            "context": {
+              "currentFreq": {
+                "value": {
+                  "stateRef": "presets[0].freq"
+                },
+                "writable": true,
+                "applyOn": "onHostTap"
+              },
+              "currentLabel": {
+                "value": {
+                  "stateRef": "presets[0].label"
+                },
+                "writable": true,
+                "applyOn": "immediate"
+              }
+            }
+          },
+          "feedback": {
+            "haptic": "medium"
+          }
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "readSimVars": [
+      "nav1_act",
+      "nav1_stby",
+      "nav2_act",
+      "nav2_stby"
+    ],
+    "writeEvents": [
+      "NAV1_SWAP",
+      "NAV1_SET",
+      "NAV2_SWAP",
+      "NAV2_SET"
+    ]
+  },
+  "updatedAt": 1787541222398
+}

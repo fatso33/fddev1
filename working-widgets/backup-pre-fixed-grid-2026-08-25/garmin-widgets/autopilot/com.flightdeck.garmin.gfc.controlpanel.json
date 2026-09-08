@@ -1,0 +1,191 @@
+{
+  "fdws": "1.3",
+  "schemaVersion": "1.3.0",
+  "id": "com.flightdeck.garmin.gfc.controlpanel",
+  "revision": 2,
+  "kind": "widget",
+  "meta": {
+    "name": "Garmin GFC Control Panel",
+    "shortName": "AP Control",
+    "author": "Flight Deck Avionics",
+    "description": "GFC500/700-style autopilot control panel: HDG/CRS/ALT/IAS bugs with inc/dec knob steppers plus direct-entry fields, a Garmin-style vertical speed lever (FDWS v1.2 core.slider) in place of the old drag-wheel, and the full lateral/vertical mode engage row plus AP DISC paddle.",
+    "category": "Autopilot",
+    "tags": ["autopilot", "ap", "gfc", "heading", "altitude", "vertical speed", "garmin"]
+  },
+  "layout": {
+    "defaultW": 44,
+    "defaultH": 32,
+    "minW": 32,
+    "minH": 24,
+    "maxW": 44,
+    "maxH": 32,
+    "resizable": true,
+    "grid": { "columns": 22, "rows": 26 }
+  },
+  "layerGroups": [
+    { "id": "background", "z": 0, "locked": true },
+    { "id": "panels", "z": 10 },
+    { "id": "controls", "z": 50 }
+  ],
+  "state": [
+    { "name": "hdg", "type": "number", "default": 360, "syncFrom": "apHdgBugValue" },
+    { "name": "crs", "type": "number", "default": 360, "syncFrom": "apCrsBugValue" },
+    { "name": "alt", "type": "number", "default": 5000, "syncFrom": "apAltBugValue" },
+    { "name": "vs", "type": "number", "default": 0, "syncFrom": "apVsBugValue" },
+    { "name": "ias", "type": "number", "default": 120, "syncFrom": "apIasBugValue" }
+  ],
+  "components": [
+    {
+      "id": "bg_bezel",
+      "type": "core.label",
+      "layout": { "col": 1, "row": 1, "w": 22, "h": 26 },
+      "layer": { "group": "background", "z": 0, "pointerEvents": "none" },
+      "props": { "text": "" },
+      "style": { "background": { "type": "color", "color": "#0c1017" }, "border": { "width": 1, "color": "#1e293b", "radius": 10 } }
+    },
+    {
+      "id": "lbl_title",
+      "type": "core.label",
+      "layout": { "col": 2, "row": 1, "w": 20, "h": 1 },
+      "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "AUTOPILOT CONTROL", "align": "center" },
+      "style": { "typography": { "font": "Chakra Petch", "size": 12, "weight": 800, "color": "#cbd5e1" } }
+    },
+
+    { "id": "btn_ap", "type": "core.button", "layout": { "col": 2, "row": 2, "w": 5, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "AP" }, "binding": { "stateVar": "apOn" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 13, "weight": 800, "color": "#22c55e" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apMaster", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "medium" } } ] },
+
+    { "id": "btn_fd", "type": "core.button", "layout": { "col": 8, "row": 2, "w": 5, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "FD" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 13, "weight": 800, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apFdToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } } ] },
+
+    { "id": "btn_yd", "type": "core.button", "layout": { "col": 14, "row": 2, "w": 5, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "YD" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 13, "weight": 800, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "yawDamperToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "light" } } ] },
+
+    { "id": "btn_disc", "type": "core.button", "layout": { "col": 20, "row": 2, "w": 1, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "momentary", "label": "X" },
+      "style": { "background": { "type": "color", "color": "#3f1414" }, "border": { "width": 1, "color": "#ef4444", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 13, "weight": 800, "color": "#f87171" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "autopilotDisengageToggle", "value": 0 }, "feedback": { "sound": "click_switch_asset", "haptic": "heavy" } } ] },
+
+    {
+      "id": "div_1", "type": "core.label", "layout": { "col": 2, "row": 5, "w": 20, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "" }, "style": { "border": { "width": 1, "color": "#1e293b" } }
+    },
+
+    { "id": "lbl_hdg", "type": "core.label", "layout": { "col": 2, "row": 6, "w": 4, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "HDG", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 10, "weight": 700, "color": "#64748b" } } },
+    { "id": "disp_hdg", "type": "core.display", "layout": { "col": 2, "row": 7, "w": 6, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "apHdgBugValue", "stateVar": "hdg" }, "props": { "format": "DEGREE_3" },
+      "style": { "background": { "type": "color", "color": "#06090f" }, "border": { "width": 1, "color": "#1e293b", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 18, "weight": 800, "color": "#22c55e" } } },
+    { "id": "step_hdg", "type": "core.stepper", "layout": { "col": 9, "row": 7, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "stateVar": "hdg" }, "props": { "step": 1, "min": 1, "max": 360 },
+      "interactions": [
+        { "trigger": "increment", "action": { "type": "core.dispatchEvent", "event": "apHdgBugInc", "value": 0 } },
+        { "trigger": "decrement", "action": { "type": "core.dispatchEvent", "event": "apHdgBugDec", "value": 0 } }
+      ] },
+
+    { "id": "lbl_crs", "type": "core.label", "layout": { "col": 14, "row": 6, "w": 4, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "CRS", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 10, "weight": 700, "color": "#64748b" } } },
+    { "id": "disp_crs", "type": "core.display", "layout": { "col": 14, "row": 7, "w": 6, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "apCrsBugValue", "stateVar": "crs" }, "props": { "format": "DEGREE_3" },
+      "style": { "background": { "type": "color", "color": "#06090f" }, "border": { "width": 1, "color": "#1e293b", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 18, "weight": 800, "color": "#22c55e" } } },
+    { "id": "btn_crs_sync", "type": "core.button", "layout": { "col": 20, "row": 7, "w": 2, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "momentary", "label": "SYN" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apCrsSync", "value": 0 } } ] },
+
+    {
+      "id": "div_2", "type": "core.label", "layout": { "col": 2, "row": 10, "w": 20, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "" }, "style": { "border": { "width": 1, "color": "#1e293b" } }
+    },
+    { "id": "lbl_lateral_modes", "type": "core.label", "layout": { "col": 2, "row": 11, "w": 8, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "LATERAL MODE", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 9, "weight": 700, "color": "#64748b" } } },
+
+    { "id": "btn_hdg_mode", "type": "core.button", "layout": { "col": 2, "row": 12, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "HDG" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apHdgHoldToggle", "value": 0 } } ] },
+    { "id": "btn_nav_mode", "type": "core.button", "layout": { "col": 7, "row": 12, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "NAV" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apNavToggle", "value": 0 } } ] },
+    { "id": "btn_bc_mode", "type": "core.button", "layout": { "col": 12, "row": 12, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "BC" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apBcToggle", "value": 0 } } ] },
+    { "id": "btn_apr_mode", "type": "core.button", "layout": { "col": 17, "row": 12, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "APR" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apAprToggle", "value": 0 } } ] },
+
+    {
+      "id": "div_3", "type": "core.label", "layout": { "col": 2, "row": 15, "w": 20, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "" }, "style": { "border": { "width": 1, "color": "#1e293b" } }
+    },
+    { "id": "lbl_vertical_modes", "type": "core.label", "layout": { "col": 2, "row": 16, "w": 8, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "VERTICAL MODE", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 9, "weight": 700, "color": "#64748b" } } },
+
+    { "id": "lbl_alt", "type": "core.label", "layout": { "col": 2, "row": 17, "w": 4, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "ALT", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 10, "weight": 700, "color": "#64748b" } } },
+    { "id": "input_alt", "type": "core.input", "layout": { "col": 2, "row": 18, "w": 6, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "apAltBugValue", "writeEvent": "apAltSet", "stateVar": "alt" }, "props": { "format": "ALTITUDE", "min": 0, "max": 50000, "defaultValue": "5000" },
+      "style": { "background": { "type": "color", "color": "#06090f" }, "border": { "width": 1, "color": "#1e293b", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 16, "weight": 700, "color": "#f8fafc" } } },
+    { "id": "step_alt", "type": "core.stepper", "layout": { "col": 9, "row": 18, "w": 4, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "stateVar": "alt" }, "props": { "step": 100, "min": 0, "max": 50000 },
+      "interactions": [
+        { "trigger": "increment", "action": { "type": "core.dispatchEvent", "event": "apAltBugInc", "value": 0 } },
+        { "trigger": "decrement", "action": { "type": "core.dispatchEvent", "event": "apAltBugDec", "value": 0 } }
+      ] },
+    { "id": "btn_alt_mode", "type": "core.button", "layout": { "col": 14, "row": 18, "w": 7, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "ALT HOLD" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apAltHoldToggle", "value": 0 } } ] },
+
+    { "id": "lbl_vs", "type": "core.label", "layout": { "col": 2, "row": 21, "w": 4, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "VS", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 10, "weight": 700, "color": "#64748b" } } },
+    { "id": "disp_vs", "type": "core.display", "layout": { "col": 2, "row": 22, "w": 6, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "apVsBugValue", "stateVar": "vs" }, "props": { "format": "VS_FPM" },
+      "style": { "background": { "type": "color", "color": "#06090f" }, "border": { "width": 1, "color": "#1e293b", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 16, "weight": 700, "color": "#f8fafc" } } },
+    { "id": "slider_vs", "type": "core.slider", "layout": { "col": 9, "row": 21, "w": 5, "h": 5 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "writeEvent": "apVsSet", "stateVar": "vs" },
+      "props": {
+        "axis": "y", "min": -6000, "max": 6000,
+        "detents": [ { "value": 0, "label": "LVL", "snap": true, "snapTolerance": 150 } ]
+      },
+      "interactions": [] },
+    { "id": "btn_vs_mode", "type": "core.button", "layout": { "col": 15, "row": 22, "w": 6, "h": 2 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "VS HOLD" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 12, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apVsHoldToggle", "value": 0 } } ] },
+
+    { "id": "lbl_ias", "type": "core.label", "layout": { "col": 2, "row": 25, "w": 4, "h": 1 }, "layer": { "group": "panels", "z": 10, "pointerEvents": "none" },
+      "props": { "text": "IAS", "align": "left" }, "style": { "typography": { "font": "Chakra Petch", "size": 10, "weight": 700, "color": "#64748b" } } },
+    { "id": "input_ias", "type": "core.input", "layout": { "col": 2, "row": 26, "w": 6, "h": 1 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "binding": { "readSimVar": "apIasBugValue", "writeEvent": "apSpdSet", "stateVar": "ias" }, "props": { "format": "RAW_INT", "min": 0, "max": 500, "defaultValue": "120" },
+      "style": { "background": { "type": "color", "color": "#06090f" }, "border": { "width": 1, "color": "#1e293b", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 14, "weight": 700, "color": "#f8fafc" } } },
+    { "id": "btn_spd_mode", "type": "core.button", "layout": { "col": 9, "row": 26, "w": 6, "h": 1 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "SPD" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apSpdHoldToggle", "value": 0 } } ] },
+    { "id": "btn_flc_mode", "type": "core.button", "layout": { "col": 16, "row": 26, "w": 6, "h": 1 }, "layer": { "group": "controls", "z": 50, "pointerEvents": "auto" },
+      "props": { "variant": "toggle", "label": "FLC" },
+      "style": { "background": { "type": "color", "color": "#111827" }, "border": { "width": 1, "color": "#1f293d", "radius": 6 }, "typography": { "font": "Chakra Petch", "size": 11, "weight": 700, "color": "#f8fafc" } },
+      "interactions": [ { "trigger": "tap", "action": { "type": "core.dispatchEvent", "event": "apFlcToggle", "value": 0 } } ] }
+  ],
+  "capabilities": {
+    "readSimVars": ["apHdgBugValue", "apCrsBugValue", "apAltBugValue", "apVsBugValue", "apIasBugValue"],
+    "writeEvents": [
+      "apMaster", "apFdToggle", "yawDamperToggle", "autopilotDisengageToggle",
+      "apHdgBugInc", "apHdgBugDec", "apCrsSync",
+      "apHdgHoldToggle", "apNavToggle", "apBcToggle", "apAprToggle",
+      "apAltSet", "apAltBugInc", "apAltBugDec", "apAltHoldToggle",
+      "apVsSet", "apVsHoldToggle",
+      "apSpdSet", "apSpdHoldToggle", "apFlcToggle"
+    ]
+  }
+}
